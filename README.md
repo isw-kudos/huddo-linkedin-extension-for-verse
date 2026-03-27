@@ -49,9 +49,9 @@ Open an email or calendar invite in HCL Verse, click the **LinkedIn** button, an
 - **Dark mode** — light, dark, or follow OS preference
 
 ### Multi-language
-Interface strings are localised in 19 languages with automatic browser language detection. Override in settings if needed.
+Interface strings are localised in 21 languages with automatic browser language detection. Override in settings if needed.
 
-> Supported: English (AU/GB/US), German, French, Italian, Spanish, Portuguese (BR), Dutch, Russian, Polish, Czech, Hungarian, Japanese, Korean, Chinese (Simplified & Traditional)
+> Supported: English (AU/GB/US), German, French, Italian, Spanish, Portuguese (BR), Dutch, Russian, Polish, Czech, Hungarian, Japanese, Korean, Chinese (Simplified & Traditional), Basque, Catalan
 
 ---
 
