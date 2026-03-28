@@ -180,11 +180,19 @@ async function restorePanelPosition(panel) {
   try {
     const stored = await _api.storage.local.get('hll_pos');
     const pos = stored.hll_pos;
-    if (!pos || !pos.left) return;
-    panel.style.left = pos.left; panel.style.top = pos.top;
-    panel.style.right = 'auto'; panel.style.bottom = 'auto';
-    if (pos.width)  panel.style.width  = pos.width;
-    if (pos.height) panel.style.height = pos.height;
+    if (pos && pos.left) {
+      panel.style.left = pos.left; panel.style.top = pos.top;
+      panel.style.right = 'auto'; panel.style.bottom = 'auto';
+      if (pos.width)  panel.style.width  = pos.width;
+      if (pos.height) panel.style.height = pos.height;
+    } else {
+      const btns = Array.from(document.querySelectorAll('[data-huddo-ext-btn]'));
+      const maxSlot = Math.max(0, btns.length - 1);
+      panel.style.bottom = (90 + maxSlot * 56 + 48 + 10) + 'px';
+      panel.style.right  = '7px';
+      panel.style.top    = 'auto';
+      panel.style.left   = 'auto';
+    }
   } catch (e) {}
 }
 
@@ -721,6 +729,31 @@ function addToggleButton() {
   btn.innerHTML=`<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><text x="16" y="16" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" letter-spacing="-0.5">in</text></svg>`;
   btn.onclick = () => togglePanel();
   document.body.appendChild(btn);
+
+  // ── Huddo extension stacking ────────────────────────────────────────────────
+  // Uses a DOM attribute as shared state so Huddo extensions coordinate
+  // across Chrome's content-script isolated worlds (window is not shared).
+  const HUDDO_BTN_ATTR = 'data-huddo-ext-btn';
+  btn.setAttribute(HUDDO_BTN_ATTR, String(Date.now()));
+  const reposition = () => {
+    const btns = Array.from(document.querySelectorAll(`[${HUDDO_BTN_ATTR}]`));
+    btns.sort((a, b) => Number(a.getAttribute(HUDDO_BTN_ATTR)) - Number(b.getAttribute(HUDDO_BTN_ATTR)));
+    const slot = Math.max(0, btns.findIndex(b => b.id === 'hll-toggle'));
+    btn.style.bottom = (90 + slot * 56) + 'px';
+  };
+  reposition();
+  const obs = new MutationObserver(mutations => {
+    const relevant = mutations.some(m =>
+      m.type === 'attributes' ||
+      Array.from(m.addedNodes).some(n => n.hasAttribute?.(HUDDO_BTN_ATTR)) ||
+      Array.from(m.removedNodes).some(n => n.hasAttribute?.(HUDDO_BTN_ATTR))
+    );
+    if (relevant) reposition();
+  });
+  obs.observe(document.body, {
+    subtree: true, childList: true,
+    attributes: true, attributeFilter: [HUDDO_BTN_ATTR]
+  });
 }
 function togglePanel() {
   const ex = document.getElementById('hll-panel');
@@ -758,21 +791,39 @@ function watchForEmailChanges() {
 shouldActivate().then(async active => {
   if (!active) return;
   await loadSettings();
+
+  // Share the configured URL via page localStorage so other Huddo extensions
+  // can inherit it if they haven't been configured yet.
+  try { if (_settings.verseUrl) localStorage.setItem('__huddo_verse_url', _settings.verseUrl); } catch(e) {}
+
+  // Show the button immediately — it doesn't need the Verse shell to exist
+  addToggleButton();
+
+  // Defer email watching until the Verse shell is in the DOM
   const VERSE_SELECTOR = '.lotusShell, #lsMainFrame, .verse-app, .pim-mailread-container, .socpimComposeView';
-  const initUI = () => { addToggleButton(); watchForEmailChanges(); };
   if (document.querySelector(VERSE_SELECTOR)) {
-    initUI();
+    watchForEmailChanges();
   } else {
     const observer = new MutationObserver(() => {
-      if (document.querySelector(VERSE_SELECTOR)) { observer.disconnect(); initUI(); }
+      if (document.querySelector(VERSE_SELECTOR)) { observer.disconnect(); clearTimeout(fallbackTimer); watchForEmailChanges(); }
     });
     observer.observe(document.body, { childList:true, subtree:true });
+    const fallbackTimer = setTimeout(() => { observer.disconnect(); watchForEmailChanges(); }, 10000);
   }
   _api.storage.onChanged.addListener(changes => {
     if (changes.autoOpen||changes.salesNav||changes.shortcutEnabled||changes.darkMode||changes.language||changes.customTemplates) loadSettings();
   });
   // Re-apply dark mode if OS preference changes
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyDarkMode);
+});
+
+// Allow the popup to retrieve the shared Verse URL written by any Huddo extension
+_api.runtime.onMessage.addListener((msg, _sender, respond) => {
+  if (msg.type === 'GET_SHARED_VERSE_URL') {
+    try { respond({ url: localStorage.getItem('__huddo_verse_url') || '' }); }
+    catch(e) { respond({ url: '' }); }
+    return true;
+  }
 });
 
 } // end double-injection guard

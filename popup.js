@@ -19,6 +19,7 @@ let templates = [];
 
 _api.storage.local.get(['verseUrl','autoOpen','salesNav','shortcutEnabled','darkMode','language','customTemplates'], s => {
   if (s.verseUrl)  verseUrlEl.value  = s.verseUrl;
+  if (!s.verseUrl) inheritVerseUrl(verseUrlEl);
   autoOpenEl.checked  = !!s.autoOpen;
   salesNavEl.checked  = !!s.salesNav;
   shortcutEl.checked  = s.shortcutEnabled !== false;
@@ -27,6 +28,16 @@ _api.storage.local.get(['verseUrl','autoOpen','salesNav','shortcutEnabled','dark
   templates = s.customTemplates || [];
   renderTemplates();
 });
+
+function inheritVerseUrl(inputEl) {
+  _api.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (!tab) return;
+    _api.tabs.sendMessage(tab.id, { type: 'GET_SHARED_VERSE_URL' }, res => {
+      if (chrome.runtime.lastError) return;
+      if (res?.url && !inputEl.value) inputEl.value = res.url;
+    });
+  });
+}
 
 function renderTemplates() {
   tmplList.innerHTML = '';
@@ -40,9 +51,12 @@ function renderTemplates() {
     `;
     row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', e => {
       templates[+e.target.dataset.idx][e.target.dataset.field] = e.target.value;
+      debouncedSave();
     }));
     row.querySelector('.tmpl-del').onclick = e => {
-      templates.splice(+e.target.dataset.idx, 1); renderTemplates();
+      templates.splice(+e.target.dataset.idx, 1);
+      renderTemplates();
+      saveAll();
     };
     tmplList.appendChild(row);
   });
@@ -56,7 +70,7 @@ document.getElementById('add-template').onclick = () => {
   rows[rows.length - 1]?.querySelector('input')?.focus();
 };
 
-document.getElementById('save').onclick = () => {
+function saveAll() {
   const url = verseUrlEl.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
   if (!url) { showStatus('Please enter your Verse URL', false); return; }
   _api.storage.local.set({
@@ -67,13 +81,23 @@ document.getElementById('save').onclick = () => {
     darkMode:        darkModeEl.value,
     language:        languageEl.value,
     customTemplates: templates.filter(t => t.name && t.url && /^https?:\/\//.test(t.url)),
-  }, () => showStatus('Settings saved!', true));
-};
+  }, () => showStatus('Saved', true));
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+const debouncedSave = debounce(saveAll, 800);
+
+verseUrlEl.addEventListener('input', debouncedSave);
+[autoOpenEl, salesNavEl, shortcutEl].forEach(el => el.addEventListener('change', saveAll));
+[darkModeEl, languageEl].forEach(el => el.addEventListener('change', saveAll));
 
 function showStatus(msg, ok) {
   statusEl.textContent = msg;
   statusEl.className = ok ? 'ok' : 'err';
-  if (ok) setTimeout(() => { statusEl.textContent = ''; statusEl.className = ''; }, 4000);
+  if (ok) setTimeout(() => { statusEl.textContent = ''; statusEl.className = ''; }, 2000);
 }
 
 function escHtml(str) {

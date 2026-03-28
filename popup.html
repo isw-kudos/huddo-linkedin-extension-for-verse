@@ -1,141 +1,325 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Huddo LinkedIn Extension for HCL Verse</title>
 <style>
-  body { min-width: 300px; padding: 16px; font-family: sans-serif; font-size: 14px; color: #222; }
-  h2 { margin: 0 0 4px; font-size: 15px; color: #1a1f2e; display: flex; align-items: center; gap: 8px; }
-  .subtitle { font-size: 11px; color: #999; margin-bottom: 14px; }
-  .section-label { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    background: #f3f4f6;
+    color: #1f2937;
+    width: 380px;
+    min-height: 100px;
+  }
+
+  /* ── HEADER ── */
+  .hdr {
+    background: linear-gradient(135deg, #0A66C2 0%, #004182 100%);
+    color: #fff;
+    padding: 16px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hdr-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .hdr-title { font-size: 16px; font-weight: 700; line-height: 1.1; }
+  .hdr-sub   { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+
+  /* ── SECTIONS ── */
+  .sections { padding: 14px 14px 80px; display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 10px;
+  }
+
+  /* ── INPUTS ── */
   .field { margin-bottom: 10px; }
-  label { display: block; margin-bottom: 4px; font-size: 12px; color: #555; font-weight: 500; }
-  input[type="text"], select { width: 100%; box-sizing: border-box; padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; outline: none; background: #fff; color: #222; }
-  input[type="text"]:focus, select:focus { border-color: #0A66C2; }
-  .hint { font-size: 11px; color: #999; margin-top: 3px; line-height: 1.4; }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f0ede8; gap: 8px; }
-  .toggle-row:last-child { border-bottom: none; }
+  .field:last-child { margin-bottom: 0; }
+
+  label { display: block; font-size: 12px; color: #374151; margin-bottom: 4px; }
+
+  input[type="text"], select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 13px;
+    color: #111827;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="text"]:focus, select:focus {
+    border-color: #0A66C2;
+    box-shadow: 0 0 0 3px rgba(10,102,194,0.15);
+  }
+
+  .field-hint {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  code {
+    background: #f0f4fa;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  /* ── TOGGLE ROWS ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+    gap: 8px;
+  }
+  .toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .toggle-row:first-child { padding-top: 0; }
   .toggle-info { flex: 1; }
-  .toggle-label { font-size: 13px; color: #333; }
-  .toggle-hint  { font-size: 11px; color: #999; }
+  .toggle-label { font-size: 13px; color: #111827; }
+  .toggle-hint  { font-size: 11px; color: #9ca3af; margin-top: 1px; }
   .toggle { position: relative; width: 34px; height: 20px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 20px; cursor: pointer; transition: background .2s; }
-  .toggle-slider:before { content:''; position:absolute; width:14px; height:14px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #d1d5db;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
   .toggle input:checked + .toggle-slider { background: #0A66C2; }
-  .toggle input:checked + .toggle-slider:before { transform: translateX(14px); }
-  .shortcut-badge { font-size: 11px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; padding: 1px 6px; color: #555; font-family: monospace; }
-  button.save { width: 100%; padding: 8px; background: #0A66C2; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; margin-top: 12px; }
-  button.save:hover { background: #004182; }
-  #status { margin-top: 8px; font-size: 12px; min-height: 16px; }
-  .ok { color: #3a7d44; } .err { color: #c0392b; }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(14px); }
+
+  .shortcut-badge {
+    font-size: 11px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: #374151;
+    font-family: monospace;
+  }
+
+  /* ── CUSTOM TEMPLATES ── */
   #templates-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .template-row { display: flex; gap: 5px; align-items: center; }
-  .template-row input { flex: 1; padding: 5px 8px; font-size: 12px; }
+  .template-row input { flex: 1; padding: 6px 8px; font-size: 12px; }
   .template-row input:first-child { flex: 0 0 90px; }
-  .tmpl-del { background: none; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-size: 14px; color: #999; padding: 3px 7px; width: auto; }
-  .tmpl-del:hover { color: #c0392b; border-color: #c0392b; }
-  .add-template { font-size: 12px; color: #0A66C2; background: none; border: 1px dashed #cde0f5; border-radius: 6px; padding: 5px; cursor: pointer; width: 100%; text-align: center; }
-  .add-template:hover { background: #f0f6ff; }
-  .tmpl-hint { font-size: 10px; color: #aaa; margin-top: 3px; line-height: 1.5; }
-  .footer { margin-top: 16px; padding-top: 12px; border-top: 1px solid #f0ede8; text-align: center; font-size: 11px; color: #aaa; }
-  .footer button { background: none; border: none; padding: 0; font-size: 11px; color: #0A66C2; cursor: pointer; font-family: inherit; }
-  .footer button:hover { text-decoration: underline; }
+  .tmpl-del {
+    background: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #9ca3af;
+    padding: 3px 7px;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  .tmpl-del:hover { color: #dc2626; border-color: #fca5a5; }
+  .btn-add-template {
+    font-size: 12px;
+    color: #0A66C2;
+    background: none;
+    border: 1px dashed #bfdbfe;
+    border-radius: 7px;
+    padding: 6px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background 0.1s;
+  }
+  .btn-add-template:hover { background: #eff6ff; }
+
+  /* ── FOOTER BAR ── */
+  .footer-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .save-status {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+  }
+  .save-status.ok  { color: #0A66C2; }
+  .save-status.err { color: #dc2626; }
+
+  /* ── FOOTER LINK ── */
+  .footer-link {
+    text-align: center;
+    padding: 8px 0 4px;
+    font-size: 11px;
+    color: #9ca3af;
+  }
+  .footer-link button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 11px;
+    color: #0A66C2;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .footer-link button:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
-<h2>
-  <svg width="20" height="20" viewBox="0 0 100 100" style="flex-shrink:0">
-    <rect width="100" height="100" rx="14" fill="#0A66C2"/>
-    <rect x="12" y="38" width="18" height="50" fill="white"/>
-    <circle cx="21" cy="21" r="10" fill="white"/>
-    <path d="M38 88V58c0-12 6-22 18-22s18 10 18 22v30h18V56c0-20-12-34-30-34s-24 10-26 16V38H38z" fill="white"/>
-  </svg>
-  Huddo LinkedIn Extension for HCL Verse
-</h2>
-<div class="subtitle">v1.2.0 · LinkedIn profile lookup for HCL Verse</div>
-
-<div class="section-label">Connection</div>
-<div class="field">
-  <label for="verseUrl">HCL Verse URL</label>
-  <input type="text" id="verseUrl" placeholder="e.g. mail.yourcompany.com/verse">
-  <div class="hint">Your organisation's Verse domain</div>
-</div>
-
-<div class="section-label">Appearance</div>
-
-<div class="field">
-  <label for="darkMode">Panel theme</label>
-  <select id="darkMode">
-    <option value="light">Light</option>
-    <option value="dark">Dark</option>
-    <option value="auto">Auto (follow OS)</option>
-  </select>
-</div>
-
-<div class="field">
-  <label for="language">Language</label>
-  <select id="language">
-    <option value="">Auto-detect from browser</option>
-    <option value="en-AU">English (Australian)</option>
-    <option value="en-GB">English (British)</option>
-    <option value="en">English (American)</option>
-    <option value="de">Deutsch — German</option>
-    <option value="fr">Français — French</option>
-    <option value="it">Italiano — Italian</option>
-    <option value="es">Español — Spanish</option>
-    <option value="pt-BR">Português — Portuguese (BR)</option>
-    <option value="nl">Nederlands — Dutch</option>
-    <option value="ru">Русский — Russian</option>
-    <option value="pl">Polski — Polish</option>
-    <option value="cs">Čeština — Czech</option>
-    <option value="hu">Magyar — Hungarian</option>
-    <option value="ja">日本語 — Japanese</option>
-    <option value="ko">한국어 — Korean</option>
-    <option value="zh">中文 (简体) — Chinese Simplified</option>
-    <option value="zh-TW">中文 (繁體) — Chinese Traditional</option>
-  </select>
-</div>
-
-<div class="section-label">Features</div>
-
-<div class="toggle-row">
-  <div class="toggle-info">
-    <div class="toggle-label">Auto-open panel</div>
-    <div class="toggle-hint">Open automatically when you select an email</div>
+<header class="hdr">
+  <div class="hdr-icon">
+    <svg width="20" height="20" viewBox="0 0 100 100" aria-hidden="true">
+      <rect x="12" y="38" width="18" height="50" fill="white"/>
+      <circle cx="21" cy="21" r="10" fill="white"/>
+      <path d="M38 88V58c0-12 6-22 18-22s18 10 18 22v30h18V56c0-20-12-34-30-34s-24 10-26 16V38H38z" fill="white"/>
+    </svg>
   </div>
-  <label class="toggle"><input type="checkbox" id="autoOpen"><span class="toggle-slider"></span></label>
-</div>
-
-<div class="toggle-row">
-  <div class="toggle-info">
-    <div class="toggle-label">Sales Navigator links</div>
-    <div class="toggle-hint">Add Sales Navigator search option</div>
+  <div>
+    <div class="hdr-title">Huddo LinkedIn Extension</div>
+    <div class="hdr-sub">LinkedIn profile lookup for HCL Verse · v1.2.0</div>
   </div>
-  <label class="toggle"><input type="checkbox" id="salesNav"><span class="toggle-slider"></span></label>
-</div>
+</header>
 
-<div class="toggle-row">
-  <div class="toggle-info">
-    <div class="toggle-label">Keyboard shortcut</div>
-    <div class="toggle-hint"><span class="shortcut-badge">Alt+L</span> toggles the panel</div>
+<div class="sections">
+
+  <!-- ── SETUP ── -->
+  <div class="card">
+    <div class="card-title">Setup</div>
+    <div class="field">
+      <label for="verseUrl">HCL Verse URL</label>
+      <input type="text" id="verseUrl" placeholder="verse.acme.com" autocomplete="off" spellcheck="false">
+      <p class="field-hint">e.g. <em>verse.acme.com</em> or <em>mail.acme.com/verse</em></p>
+    </div>
   </div>
-  <label class="toggle"><input type="checkbox" id="shortcutEnabled" checked><span class="toggle-slider"></span></label>
-</div>
 
-<div class="section-label">Custom search templates</div>
-<div id="templates-list"></div>
-<button class="add-template" id="add-template">+ Add search template</button>
-<div class="tmpl-hint">
-  Use <code>{name}</code> and <code>{company}</code> as placeholders.<br>
-  e.g. Name: "Seek" · URL: https://www.seek.com.au/{name}
-</div>
+  <!-- ── APPEARANCE ── -->
+  <div class="card">
+    <div class="card-title">Appearance</div>
+    <div class="field">
+      <label for="darkMode">Panel theme</label>
+      <select id="darkMode">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="auto">Auto (follow OS)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="language">Language</label>
+      <select id="language">
+        <option value="">Auto-detect from browser</option>
+        <option value="en-AU">English (Australian)</option>
+        <option value="en-GB">English (British)</option>
+        <option value="en">English (American)</option>
+        <option value="de">Deutsch — German</option>
+        <option value="fr">Français — French</option>
+        <option value="it">Italiano — Italian</option>
+        <option value="es">Español — Spanish</option>
+        <option value="pt-BR">Português — Portuguese (BR)</option>
+        <option value="nl">Nederlands — Dutch</option>
+        <option value="ru">Русский — Russian</option>
+        <option value="pl">Polski — Polish</option>
+        <option value="cs">Čeština — Czech</option>
+        <option value="hu">Magyar — Hungarian</option>
+        <option value="ja">日本語 — Japanese</option>
+        <option value="ko">한국어 — Korean</option>
+        <option value="zh">中文 (简体) — Chinese Simplified</option>
+        <option value="zh-TW">中文 (繁體) — Chinese Traditional</option>
+      </select>
+    </div>
+  </div>
 
-<button class="save" id="save">Save settings</button>
-<div id="status"></div>
+  <!-- ── FEATURES ── -->
+  <div class="card">
+    <div class="card-title">Features</div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Auto-open panel</div>
+        <div class="toggle-hint">Open automatically when you select an email</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="autoOpen"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Sales Navigator links</div>
+        <div class="toggle-hint">Add Sales Navigator search option</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="salesNav"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Keyboard shortcut</div>
+        <div class="toggle-hint"><span class="shortcut-badge">Alt+L</span> toggles the panel</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="shortcutEnabled" checked><span class="toggle-slider"></span></label>
+    </div>
+  </div>
 
-<div class="footer">
-  Created by the team at <button id="huddo-link">huddo.com</button>
+  <!-- ── CUSTOM TEMPLATES ── -->
+  <div class="card">
+    <div class="card-title">Custom Search Templates</div>
+    <div id="templates-list"></div>
+    <button class="btn-add-template" id="add-template">+ Add search template</button>
+    <p class="field-hint" style="margin-top:8px">
+      Use <code>{name}</code> and <code>{company}</code> as placeholders.<br>
+      e.g. Name: "Seek" · URL: https://www.seek.com.au/{name}
+    </p>
+  </div>
+
+  <div class="footer-link">
+    <button id="huddo-link">huddo.com</button>
+  </div>
+
+</div><!-- /sections -->
+
+<div class="footer-bar">
+  <span class="save-status" id="status"></span>
 </div>
 
 <script src="popup.js"></script>
