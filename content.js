@@ -569,7 +569,7 @@ async function createPanel(context) {
         <svg width="22" height="22" viewBox="0 0 32 32" style="flex-shrink:0;border-radius:6px;background:#0A66C2">
           <text x="16" y="16" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" letter-spacing="-0.5">in</text>
         </svg>
-        <span>LinkedIn Extension for HCL Verse</span>
+        <span>Huddo LinkedIn for HCL Verse</span>
       </div>
       <button id="hll-close" title="Close">✕</button>
     </div>
@@ -725,7 +725,7 @@ function makeResizable(panel) {
 function addToggleButton() {
   if (document.getElementById('hll-toggle')) return;
   const btn = document.createElement('button');
-  btn.id='hll-toggle'; btn.title='Huddo LinkedIn Extension (Alt+L)';
+  btn.id='hll-toggle'; btn.title='Huddo LinkedIn for HCL Verse (Alt+L)';
   btn.innerHTML=`<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><text x="16" y="16" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central" letter-spacing="-0.5">in</text></svg>`;
   btn.onclick = () => togglePanel();
   document.body.appendChild(btn);
