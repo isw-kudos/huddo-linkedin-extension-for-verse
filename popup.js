@@ -1,11 +1,5 @@
 const _api = typeof browser !== 'undefined' ? browser : chrome;
 
-// Footer link — tabs.create is needed because anchor hrefs don't work in extension popups
-document.getElementById('huddo-link').addEventListener('click', e => {
-  e.preventDefault();
-  _api.tabs.create({ url: 'https://www.huddo.com', active: true });
-});
-
 const verseUrlEl   = document.getElementById('verseUrl');
 const autoOpenEl   = document.getElementById('autoOpen');
 const salesNavEl   = document.getElementById('salesNav');
