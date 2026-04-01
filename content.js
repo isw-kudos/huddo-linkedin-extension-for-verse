@@ -131,6 +131,7 @@ function extractPronounsAndPronunciation(bodyText) {
 
 function shouldActivate() {
   return new Promise(resolve => {
+    if (location.hash.startsWith('#/tearoff/')) { resolve(false); return; }
     _api.storage.local.get("verseUrl", ({ verseUrl }) => {
       if (!verseUrl) { resolve(false); return; }
       try {
